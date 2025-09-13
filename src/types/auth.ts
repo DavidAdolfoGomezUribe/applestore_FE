@@ -18,9 +18,21 @@ export type LoginResponse = {
   user: User;
 };
 
-// Útil si quieres tipar el estado de auth en el front (opcional):
+// Estado de autenticación en el front (opcional)
 export type AuthState = {
   token: string | null;
   token_type: string | null;
   user: User | null;
 };
+
+// ===== Registro =====
+// OJO: el backend espera "rol" (una sola L)
+export type RegisterPayload = {
+  name: string;
+  email: string;
+  password: string;
+  rol: string; // "admin" | "user" | ...
+};
+
+// La respuesta de /users/register es el usuario creado
+export type RegisterResponse = User;
