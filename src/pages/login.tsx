@@ -21,13 +21,29 @@ export default function Login(): React.ReactElement {
   const [info, setInfo] = useState<string | null>(null);
 
   // 👇 rol por defecto para registro (tu backend espera el campo "rol")
-  const DEFAULT_ROLE = "user"; // ← dejamos el rol fijo como "user" (placeholder configurable)
+  const DEFAULT_ROLE = "user"; // placeholder configurable
 
-  // Si ya hay sesión, evita mostrar el login/registro
+  // Si ya hay sesión, evita mostrar login/registro
   useEffect(() => {
     const { token } = getStoredAuth();
     if (token) navigate(redirectTo, { replace: true });
   }, [navigate, redirectTo]);
+
+  // ⬇️ NUEVO: Redirigir si ya hay sesión y es admin (incluye post-login/post-register si guardas user)
+  useEffect(() => {
+    function checkAdminRedirect() {
+      const { user } = getStoredAuth();
+      // soporta 'role' o 'rol' sin usar any
+      const u = user as (import("../types/auth").User & { rol?: string }) | null;
+      const role = (u?.role ?? u?.rol ?? "").toLowerCase();
+      if (role === "admin") {
+        navigate("/admin", { replace: true });
+      }
+    }
+    checkAdminRedirect(); // al montar
+    window.addEventListener("auth:updated", checkAdminRedirect);
+    return () => window.removeEventListener("auth:updated", checkAdminRedirect);
+  }, [navigate]);
 
   function parseBackendError(err: unknown): string {
     if (err instanceof Error) {
@@ -58,9 +74,19 @@ export default function Login(): React.ReactElement {
       if (mode === "login") {
         // Backend espera JSON: { email, password }
         await login({ email, password }, { persist: true });
-        navigate(redirectTo, { replace: true });
+
+        // ⬇️ NUEVO: después de loguear, decide destino por rol
+        const { user } = getStoredAuth();
+        const u = user as (import("../types/auth").User & { rol?: string }) | null;
+        const role = (u?.role ?? u?.rol ?? "").toLowerCase();
+
+        if (role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate(redirectTo, { replace: true });
+        }
       } else {
-        // Registro: { name, email, password, rol: "user" }
+        // Registro: { name, email, password, rol: DEFAULT_ROLE }
         await register({ name, email, password, rol: DEFAULT_ROLE });
         // No auto-logueamos: mostramos aviso y cambiamos a modo login
         setInfo("Registro exitoso. Ahora puedes iniciar sesión.");
