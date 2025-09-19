@@ -12,11 +12,8 @@ function getStoredUser() {
 export default function AdminRoute({ children }: { children: React.ReactElement }) {
   const location = useLocation();
   const user = getStoredUser();
-  const role = user?.role || user?.rol || "";
-  const isAdmin = typeof role === "string" && role.toLowerCase() === "admin";
-
-  if (!isAdmin) {
-    return <Navigate to="/" replace state={{ from: location }} />;
-  }
+  const role = (user?.role ?? user?.rol ?? "").toLowerCase();
+  const isAdmin = role === "admin";
+  if (!isAdmin) return <Navigate to="/" replace state={{ from: location }} />;
   return children;
 }

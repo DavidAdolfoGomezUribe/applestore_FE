@@ -5,8 +5,6 @@ import FloatingChat from "./components/FloatingChat";
 import Main from "./components/main";
 import Login from "./pages/login";
 import AdminRoute from "./routes/AdminRoute";
-
-// NUEVO: imports para admin
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminHome from "./pages/admin/AdminHome";
 import ChatsPage from "./pages/admin/ChatsPage";
@@ -35,7 +33,7 @@ export default function App() {
           <Route index element={<Main />} />
         </Route>
 
-        {/* Rutas de Admin: FUERA del SiteLayout (sin header/footer) */}
+        {/* Rutas Admin (sin header/footer) */}
         <Route
           path="/admin"
           element={
