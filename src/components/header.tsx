@@ -1,10 +1,26 @@
 // src/components/header.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getStoredAuth, logout } from "../api/login";
 import type { User } from "../types/auth";
 
-// export type Props = {};
+import AppleIcon from "../assets/apple.svg";
+import SearchIcon from "../assets/search.svg";
+import BagIcon from "../assets/bag.svg";
+import MenuIcon from "../assets/menu.svg";
+
+const navItems = [
+  { label: "Store", to: "/" },
+  { label: "Mac", to: "/" },
+  { label: "iPad", to: "/" },
+  { label: "iPhone", to: "/" },
+  { label: "Watch", to: "/" },
+  { label: "AirPods", to: "/" },
+  { label: "TV & Home", to: "/" },
+  { label: "Only on Apple", to: "/" },
+  { label: "Accessories", to: "/" },
+  { label: "Support", to: "/" },
+];
 
 export default function Header(): React.ReactElement {
   const navigate = useNavigate();
@@ -14,131 +30,120 @@ export default function Header(): React.ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Refresca usuario cuando cambia la URL (después de login/logout)
+  // Refresca el usuario tras cambios de ruta (login/logout)
   useEffect(() => {
     setUser(getStoredAuth().user);
   }, [location.key]);
 
-  // Escucha cambios de storage (login/logout en otra pestaña)
+  // Cerrar panel móvil al hacer click fuera
   useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (!e.key || e.key === "user" || e.key === "access_token" || e.key === "token_type") {
-        setUser(getStoredAuth().user);
-      }
+    const handler = (e: MouseEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  // Cerrar menú al hacer click fuera
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
   }, []);
 
   const handleLogout = () => {
     logout();
     setUser(null);
-    setMenuOpen(false);
-    navigate("/", { replace: true });
+    navigate("/");
   };
 
-  const firstName = user?.name?.split(" ")[0] ?? "";
-  const initials = user?.name
-    ? user.name
-        .trim()
-        .split(/\s+/)
-        .map((n) => n[0]?.toUpperCase())
-        .slice(0, 2)
-        .join("")
-    : "👤";
-
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur bg-white/70 border-b">
-      <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black text-white font-bold">
-            
-          </span>
-          <span className="text-lg font-semibold">Apple Store</span>
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/60 text-gray-200">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex h-12 items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="shrink-0 flex items-center p-1 hover:opacity-80">
+            <img src={AppleIcon} alt="Apple" className="h-4 w-4" />
+          </Link>
+
+          {/* Navegación (desktop) */}
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            {navItems.map((it) => (
+              <Link key={it.label} to={it.to} className="hover:text-white transition-colors">
+                {it.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Acciones derecha */}
+          <div className="flex items-center gap-4">
+            <button
+              aria-label="Buscar"
+              className="hidden md:inline-flex p-2 rounded hover:bg-white/10 transition"
+              onClick={() => navigate("/")}
+            >
+              <img src={SearchIcon} className="h-4 w-4" />
+            </button>
+            <button
+              aria-label="Bolsa / Panel"
+              className="hidden md:inline-flex p-2 rounded hover:bg-white/10 transition"
+              onClick={() => navigate(user ? "/admin" : "/login")}
+              title={user ? "Panel" : "Login"}
+            >
+              <img src={BagIcon} className="h-4 w-4" />
+            </button>
+
+            {/* Menú móvil */}
+            <button
+              className="md:hidden inline-flex p-2 rounded hover:bg-white/10"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Abrir menú"
+            >
+              <img src={MenuIcon} className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Nav (placeholder) */}
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          <a href="#" className="hover:text-black/70">iPhone</a>
-          <a href="#" className="hover:text-black/70">iPad</a>
-          <a href="#" className="hover:text-black/70">Mac</a>
-          <a href="#" className="hover:text-black/70">Watch</a>
-          <a href="#" className="hover:text-black/70">Accessories</a>
-        </nav>
-
-        {/* Right side */}
-        <div className="flex items-center gap-3 relative" ref={menuRef}>
-          <input
-            className="hidden sm:block w-40 rounded-xl border px-3 py-1.5 text-sm"
-            placeholder="Buscar productos..."
-          />
-
-          {!user ? (
-            // Botón "Ingresar"
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-              className="rounded-full border px-4 py-1.5 text-sm hover:bg-black hover:text-white transition"
-            >
-              Ingresar
-            </button>
-          ) : (
-            // Usuario + menú
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((o) => !o)}
-                className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-black hover:text-white transition"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
+        {/* Panel móvil */}
+        <div
+          ref={menuRef}
+          className={`md:hidden overflow-hidden transition-[max-height] duration-300 ${
+            menuOpen ? "max-h-96" : "max-h-0"
+          }`}
+        >
+          <nav className="py-2 border-t border-white/10">
+            {navItems.map((it) => (
+              <Link
+                key={it.label}
+                to={it.to}
+                className="block px-2 py-2 text-sm hover:bg-white/5"
+                onClick={() => setMenuOpen(false)}
               >
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-black text-white text-xs">
-                  {initials.length >= 2 ? initials : "👤"}
-                </span>
-                <span className="max-w-[120px] truncate">{firstName || "Usuario"}</span>
-              </button>
-
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 mt-2 w-44 rounded-xl border bg-white shadow-lg overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      // Placeholder: más adelante lo implementamos
-                      // Por ahora, puede ser un modal o solo navegar a una ruta futura:
-                      // navigate("/account");
-                      alert("Info: próximamente 😉");
-                    }}
+                {it.label}
+              </Link>
+            ))}
+            <div className="mt-2 border-t border-white/10">
+              {user ? (
+                <>
+                  <Link
+                    to="/admin"
+                    className="block px-2 py-2 text-sm hover:bg-white/5"
+                    onClick={() => setMenuOpen(false)}
                   >
-                    Info
-                  </button>
+                    Panel
+                  </Link>
                   <button
-                    type="button"
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                     onClick={handleLogout}
+                    className="block w-full text-left px-2 py-2 text-sm text-red-300 hover:bg-white/5"
                   >
                     Logout
                   </button>
-                </div>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block px-2 py-2 text-sm hover:bg-white/5"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Iniciar sesión
+                </Link>
               )}
             </div>
-          )}
+          </nav>
         </div>
       </div>
     </header>
