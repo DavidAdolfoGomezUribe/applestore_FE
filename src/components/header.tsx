@@ -10,7 +10,7 @@ import BagIcon from "../assets/bag.svg";
 import MenuIcon from "../assets/menu.svg";
 
 const navItems = [
-  { label: "Store", to: "/" },
+  { label: "Store", to: "/store" }, // <- redirige a la nueva página
   { label: "Mac", to: "/" },
   { label: "iPad", to: "/" },
   { label: "iPhone", to: "/" },
@@ -25,17 +25,12 @@ const navItems = [
 export default function Header(): React.ReactElement {
   const navigate = useNavigate();
   const location = useLocation();
-
   const [user, setUser] = useState<User | null>(() => getStoredAuth().user);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Refresca el usuario tras cambios de ruta (login/logout)
-  useEffect(() => {
-    setUser(getStoredAuth().user);
-  }, [location.key]);
+  useEffect(() => { setUser(getStoredAuth().user); }, [location.key]);
 
-  // Cerrar panel móvil al hacer click fuera
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (!menuRef.current) return;
@@ -55,12 +50,10 @@ export default function Header(): React.ReactElement {
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/60 text-gray-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-12 items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="shrink-0 flex items-center p-1 hover:opacity-80">
             <img src={AppleIcon} alt="Apple" className="h-4 w-4" />
           </Link>
 
-          {/* Navegación (desktop) */}
           <nav className="hidden md:flex items-center gap-6 text-sm">
             {navItems.map((it) => (
               <Link key={it.label} to={it.to} className="hover:text-white transition-colors">
@@ -69,7 +62,6 @@ export default function Header(): React.ReactElement {
             ))}
           </nav>
 
-          {/* Acciones derecha */}
           <div className="flex items-center gap-4">
             <button
               aria-label="Buscar"
@@ -87,7 +79,6 @@ export default function Header(): React.ReactElement {
               <img src={BagIcon} className="h-4 w-4" />
             </button>
 
-            {/* Menú móvil */}
             <button
               className="md:hidden inline-flex p-2 rounded hover:bg-white/10"
               onClick={() => setMenuOpen((v) => !v)}
@@ -98,12 +89,9 @@ export default function Header(): React.ReactElement {
           </div>
         </div>
 
-        {/* Panel móvil */}
         <div
           ref={menuRef}
-          className={`md:hidden overflow-hidden transition-[max-height] duration-300 ${
-            menuOpen ? "max-h-96" : "max-h-0"
-          }`}
+          className={`md:hidden overflow-hidden transition-[max-height] duration-300 ${menuOpen ? "max-h-96" : "max-h-0"}`}
         >
           <nav className="py-2 border-t border-white/10">
             {navItems.map((it) => (

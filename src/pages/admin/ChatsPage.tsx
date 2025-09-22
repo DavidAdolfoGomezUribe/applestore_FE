@@ -85,8 +85,7 @@ export default function ChatsPage(): React.ReactElement {
     }
   }
 
-  // filtrar por query: primero por peer (tel/email) y last_message;
-  // si no coincide, intentamos buscar en mensajes (cargando full lazy si hace falta)
+  // filtrar por query
   const filteredChats = useMemo(() => {
     const q = debounced.toLowerCase();
     if (!q) return chats;
@@ -106,7 +105,6 @@ export default function ChatsPage(): React.ReactElement {
       const last = (c.last_message || "").toLowerCase();
       return !peer.includes(q) && !last.includes(q) && !includesInFull(fullCache[c.id], q);
     });
-    // cargar en background (limitamos a 6 por ráfaga)
     candidates.slice(0, 6).forEach((c) => { void ensureFull(c.id); });
   }, [debounced, chats, fullCache]);
 
@@ -122,10 +120,10 @@ export default function ChatsPage(): React.ReactElement {
   const openChat = openId != null ? fullCache[openId] : undefined;
 
   return (
-    <div>
+    // ⬇️ SCROLL CONTENIDO: este contenedor ocupa todo el alto disponible del área central
+    <section className="h-full min-h-0 flex flex-col">
       <h2 className="text-2xl font-bold">Chats</h2>
-      <p className="mt-2 text-gray-600">Actualiza en tiempo real (polling {POLL_MS}ms).</p>
-
+      
       {/* barra de búsqueda */}
       <div className="mt-4">
         <input
@@ -140,8 +138,8 @@ export default function ChatsPage(): React.ReactElement {
       {err && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
       {loading && <div className="mt-4 text-sm text-gray-600">Cargando…</div>}
 
-      {/* UNA sola columna de tarjetas compactas */}
-      <div className="mt-6 space-y-2">
+      {/* ⬇️ SOLO ESTA ÁREA HACE SCROLL, no toda la página */}
+      <div className="mt-6 flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
         {filteredChats.length === 0 ? (
           <div className="text-sm text-gray-600">Sin chats.</div>
         ) : (
@@ -172,7 +170,7 @@ export default function ChatsPage(): React.ReactElement {
           )
         ) : null}
       </Modal>
-    </div>
+    </section>
   );
 }
 

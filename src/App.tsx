@@ -1,3 +1,4 @@
+// src/App.tsx
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -10,6 +11,9 @@ import AdminHome from "./pages/admin/AdminHome";
 import ChatsPage from "./pages/admin/ChatsPage";
 import ProductsPage from "./pages/admin/ProductsPage";
 import UsersPage from "./pages/admin/UsersPage";
+
+// 👇 NUEVA PÁGINA STORE
+import Store from "./pages/Store";
 
 // Layout SOLO para páginas públicas del sitio (Home, etc.)
 function SiteLayout() {
@@ -31,6 +35,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route element={<SiteLayout />}>
           <Route index element={<Main />} />
+          {/* 👇 RUTA A LA TIENDA */}
+          <Route path="store" element={<Store />} />
         </Route>
 
         {/* Rutas Admin (sin header/footer) */}
